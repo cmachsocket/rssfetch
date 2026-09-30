@@ -9,7 +9,7 @@ use async_openai::{
 };
 use tokio::{fs::OpenOptions, io::AsyncWriteExt};
 
-const SYS_PROMPT: &str = "你是一个 RSS 订阅源的摘要生成器。请根据用户提供的内容生成简明扼要的摘要。";
+const SYS_PROMPT: &str = "你是一个 RSS 订阅源的摘要生成器。请根据用户提供的内容生成简明扼要的摘要。以markdown格式输出，确保内容清晰易读。";
 
 pub(crate) async fn llm_sum(rssconfig: &RSSconfig) {
     // 1. 创建自定义配置
@@ -19,7 +19,7 @@ pub(crate) async fn llm_sum(rssconfig: &RSSconfig) {
 
     // 2. 用配置创建客户端
     let client = Client::with_config(config);
-    let content = tokio::fs::read_to_string("file.txt")
+    let content = tokio::fs::read_to_string(&rssconfig.file_path)
         .await
         .expect("无法读取文件");
     let request = CreateChatCompletionRequestArgs::default()
