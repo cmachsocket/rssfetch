@@ -7,6 +7,7 @@ use serde_saphyr;
 use std::error::Error;
 use std::fs::OpenOptions;
 use std::fs;
+use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::{Path};
 use std::{format, writeln};
@@ -67,7 +68,7 @@ struct Config {
     port: u16,
     #[serde(default = "String::new")]
     access_key: String,
-    #[serde(default = "String::new")]
+    #[serde(default = "default_save_path")]
     save_path: String,
     #[serde(default = "Vec::new")]
     routes: Vec<String>,
@@ -79,7 +80,9 @@ fn localhost() -> String {
 fn default_port() -> u16 {
     80
 }
-
+fn default_save_path() -> String {
+    "output".into()
+}
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     init_logger();
@@ -125,8 +128,9 @@ async fn run() -> Result<(), Box<dyn Error>> {
     }
 
     let now = Local::now();
-    let path = Path::new(&save_path).join(format!("{}.txt", now.format("%Y-%m-%d")));
-
+    let path = Path::new(&save_path).join(format!("{}.md", now.format("%Y-%m-%d")));
+    //清空文件
+    File::create(&path)?;
     // 错误分支 8: 打不开输出文件（已存在但无写权限等）
     let f = OpenOptions::new()
         .create(true)
