@@ -47,8 +47,28 @@ git tag v0.2.0 && git push origin main --tags
 abi3 wheel（Linux x86_64/aarch64、macOS x86_64/aarch64、Windows x86_64）加 sdist，
 经 PyPI 的 trusted publishing（OIDC）自动上传，无需在仓库里存 API token。
 
-首次发布前需要在 PyPI 上为 `cmachsocket/rssfetch` 配置 trusted publisher
-（Settings → Publishing → GitHub，填 `cmachsocket/rssfetch` + workflow 名 `release.yml`）。
+### 首次发布：配置 trusted publisher
+
+项目还不存在时，用 PyPI 的**待定（pending）publisher**，第一次上传成功会自动创建项目。
+去 <https://pypi.org/manage/account/publishing/> → Add a new publisher → GitHub Actions：
+
+| 字段 | 值 |
+|---|---|
+| Owner | `cmachsocket` |
+| Repository name | `rssfetch` |
+| Workflow name | `release.yml`（只填文件名，不带路径） |
+| Environment name | `pypi` |
+
+**Environment name 那一栏不能留空。** workflow 里有 `environment: pypi`，
+OIDC token 的 `sub` claim 就带 `:environment:pypi` 后缀；PyPI 上留空时期望的是无后缀的
+`repo:cmachsocket/rssfetch`，两边对不上会报 `invalid-publisher`：
+
+```
+`sub`: `repo:cmachsocket@98704668/rssfetch@1397169330:environment:pypi`
+```
+
+`sub` 里的 `@数字` 是 GitHub 内部 ID，不用填。配置 environment 本身是可选的，
+但建议保留：可以在 GitHub 上给它挂「需要审核人」，给发布加一道人工闸门。
 
 不传 tag 也可以在 Actions 页面手动跑该 workflow（`dry_run: true` 时只构建不上传）。
 
