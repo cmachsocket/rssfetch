@@ -8,7 +8,8 @@ RSS 解析、HTML 转纯文本、调用 LLM；**Python** 负责配置解析、�
 ```
 rssfetch/
 ├── Cargo.toml            # 扩展模块 crate（lib: _rssfetch, cdylib + rlib）
-├── pyproject.toml        # maturin 构建后端
+├── pyproject.toml        # maturin 构建后端（abi3，CPython 3.9+）
+├── .github/workflows/    # CI（lint + build）与 Release（多平台 wheel -> PyPI）
 ├── src/
 │   ├── lib.rs            # PyO3 绑定层：fetch_feed / html_to_text / summarize / FeedItem
 │   ├── fetch.rs          # HTTP 拉取 + RSS 解析
@@ -27,9 +28,34 @@ rssfetch/
 # 开发模式（就地编译并安装进当前虚拟环境）
 maturin develop
 
-# 或构建 wheel
+# 或构建 wheel（abi3，一个 wheel 覆盖 CPython 3.9+）
 maturin build --release
 pip install target/wheels/rssfetch-*.whl
+```
+
+## 发布到 PyPI
+
+版本号在 `Cargo.toml` 和 `pyproject.toml` 中各写一处，两者需保持一致。
+
+```bash
+# 1. 改版本号（例：0.1.0 -> 0.2.0），提交
+# 2. 打 tag 触发发布
+git tag v0.2.0 && git push origin main --tags
+```
+
+[`.github/workflows/release.yml`](.github/workflows/release.yml) 会构建 6 个平台的
+abi3 wheel（Linux x86_64/aarch64、macOS x86_64/aarch64、Windows x86_64）加 sdist，
+经 PyPI 的 trusted publishing（OIDC）自动上传，无需在仓库里存 API token。
+
+首次发布前需要在 PyPI 上为 `cmachsocket/rssfetch` 配置 trusted publisher
+（Settings → Publishing → GitHub，填 `cmachsocket/rssfetch` + workflow 名 `release.yml`）。
+
+不传 tag 也可以在 Actions 页面手动跑该 workflow（`dry_run: true` 时只构建不上传）。
+
+本地验证打包结果：
+
+```bash
+maturin sdist --out dist && twine check dist/*
 ```
 
 ## 使用

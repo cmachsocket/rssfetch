@@ -2,6 +2,14 @@
 name = "rssfetch"
 version = "0.1.0"
 edition = "2024"
+description = "抓取 RSS 订阅源，输出当日 markdown 并生成 LLM 摘要（Rust/PyO3 实现）"
+license = "MIT"
+repository = "https://github.com/cmachsocket/rssfetch"
+readme = "README.md"
+# test.txt 是本地抓取结果样本，不应进 sdist
+exclude = ["test.txt"]
+# edition 2024 本身要求 1.85+（pyo3 0.29 只要求 1.83，取较大者）
+rust-version = "1.85"
 
 [lib]
 # 编译为 Python 扩展模块（cdylib），同时保留 rlib 以便未来写 Rust 测试。
@@ -9,7 +17,9 @@ name = "_rssfetch"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pyo3 = "0.29"
+# abi3-py39: 编译一次即可在 CPython 3.9+ 上安装（稳定 ABI），
+# 免去为每个 Python 版本各构建一个 wheel。
+pyo3 = { version = "0.29", features = ["abi3-py39"] }
 rss = "2"
 reqwest = "0.13"
 tokio = { version = "1", features = ["rt-multi-thread", "time"] }

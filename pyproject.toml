@@ -8,17 +8,45 @@ version = "0.1.0"
 description = "抓取 RSS 订阅源，输出当日 markdown 并生成 LLM 摘要（Rust/PyO3 实现）"
 readme = "README.md"
 requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "cmachsocket" }]
+keywords = ["rss", "atom", "feed", "summarize", "pyo3", "maturin", "rss-fetch"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Rust",
+  "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+  "Topic :: Text Processing :: Markup :: Markdown",
+]
 dependencies = ["PyYAML>=6.0"]
+
+[project.urls]
+Homepage = "https://github.com/cmachsocket/rssfetch"
+Repository = "https://github.com/cmachsocket/rssfetch"
+Issues = "https://github.com/cmachsocket/rssfetch/issues"
 
 [project.scripts]
 rssfetch = "rssfetch.__main__:main"
 
 [tool.maturin]
 # 混合项目：python-source 下的 rssfetch/ 是纯 Python 包，
-# 编译产物 python/rssfetch/_rssfetch.<abi>.so 由 module-name 指定。
+# 编译产物 python/rssfetch/_rssfetch.abi3.so 由 module-name 指定。
 python-source = "python"
 module-name = "rssfetch._rssfetch"
 # pyo3 的 extension-module 特性由 maturin 打开，
 # 这样 `cargo check` / `cargo test` 仍能链接 libpython 正常工作。
 features = ["pyo3/extension-module"]
 strip = true
+# abi3 稳定 ABI：一条构建覆盖 CPython 3.9+，wheel 标签形如 cp39-abi3。
+# 最低版本由 Cargo.toml 中 pyo3 的 abi3-py39 特性决定。
