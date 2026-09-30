@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "rssfetch"
-version = "0.1.0"
+version = "0.1.1"
 description = "抓取 RSS 订阅源，输出当日 markdown 并生成 LLM 摘要（Rust/PyO3 实现）"
 readme = "README.md"
 requires-python = ">=3.9"
