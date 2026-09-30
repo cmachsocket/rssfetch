@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence
 
 from ._rssfetch import FeedItem, fetch_feed, html_to_text, summarize
 from .config import Config
@@ -32,8 +32,8 @@ class SourceResult:
 
     route: str
     url: str
-    items: List[FeedItem] = field(default_factory=list)
-    error: Optional[str] = None
+    items: list[FeedItem] = field(default_factory=list)
+    error: str | None = None
 
     @property
     def ok(self) -> bool:
@@ -44,13 +44,13 @@ class SourceResult:
 class RunReport:
     """一次完整运行的汇总。"""
 
-    sources: List[SourceResult] = field(default_factory=list)
-    file_path: Optional[Path] = None
-    summary_path: Optional[Path] = None
+    sources: list[SourceResult] = field(default_factory=list)
+    file_path: Path | None = None
+    summary_path: Path | None = None
     item_count: int = 0
 
     @property
-    def failed(self) -> List[SourceResult]:
+    def failed(self) -> list[SourceResult]:
         return [source for source in self.sources if not source.ok]
 
     @property
@@ -62,7 +62,9 @@ async def _fetch_source(route: str, url: str, timeout: float) -> SourceResult:
     try:
         # Rust 侧是同步阻塞调用，放进线程池才能真正并发。
         items = await asyncio.to_thread(fetch_feed, url, timeout)
-    except Exception as exc:  # noqa: BLE001 - 订阅源失败不应中断整体流程
+    # 宽泛捕获 Exception 是刻意的：单个源失败不该拖垮整轮抓取，
+    # 原因记入 SourceResult.error 交由上层汇总。
+    except Exception as exc:
         # 错误分支: 单个订阅源抓取/解析失败
         log.debug("订阅源失败 [%s]", route, exc_info=True)
         return SourceResult(route=route, url=url, error=str(exc))
@@ -76,12 +78,12 @@ def _to_local(published: float) -> datetime:
 def fresh_items(
     items: Iterable[FeedItem],
     max_age: timedelta = DEFAULT_MAX_AGE,
-    now: Optional[datetime] = None,
-) -> List[FeedItem]:
+    now: datetime | None = None,
+) -> list[FeedItem]:
     """过滤掉发布时间无法解析或早于 ``now - max_age`` 的条目。"""
     now = now or datetime.now().astimezone()
     cutoff = now - max_age
-    kept: List[FeedItem] = []
+    kept: list[FeedItem] = []
     for item in items:
         if item.published is None:
             # 时间缺失/非法时无法判断新鲜度，保守丢弃并留痕。
@@ -120,7 +122,7 @@ def describe_item(item: FeedItem) -> Sequence[str]:
 
 def render_markdown(sources: Sequence[SourceResult]) -> str:
     """拼出当日正文（markdown）。"""
-    blocks: List[str] = []
+    blocks: list[str] = []
     for source in sources:
         if not source.items:
             continue

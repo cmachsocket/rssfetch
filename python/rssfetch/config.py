@@ -10,7 +10,7 @@ import logging
 from dataclasses import dataclass, field, fields
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import quote
 
 import yaml
@@ -32,15 +32,15 @@ class Config:
     port: int = 80
     access_key: str = ""
     save_path: str = "output"
-    routes: List[str] = field(default_factory=list)
+    routes: list[str] = field(default_factory=list)
     api_base: str = ""
     api_key: str = ""
     model_name: str = ""
     #: 配置文件路径，仅用于日志排查与默认的相对路径基准。
-    source: Optional[Path] = None
+    source: Path | None = None
 
     @property
-    def feed_urls(self) -> List[str]:
+    def feed_urls(self) -> list[str]:
         """各订阅源的完整 URL（含 access_key 查询参数）。"""
         return [self.feed_url(route) for route in self.routes]
 
@@ -61,8 +61,10 @@ class Config:
     def output_dir(self) -> Path:
         return Path(self.save_path) if self.save_path else Path(".")
 
-    def _dated(self, suffix: str, now: Optional[datetime] = None) -> Path:
-        now = now or datetime.now()
+    def _dated(self, suffix: str, now: datetime | None = None) -> Path:
+        # 用 astimezone() 取带时区的本地时间：文件名要的是"本地当天"，
+        # 而非 UTC 当天，与 runner.py 的时间窗口过滤保持一致。
+        now = now or datetime.now().astimezone()
         return self.output_dir / f"{now:%Y-%m-%d}{suffix}"
 
     @property
@@ -133,13 +135,13 @@ def _as_port(value: Any, path: Path) -> int:
     return port
 
 
-def _as_routes(value: Any, path: Path) -> List[str]:
+def _as_routes(value: Any, path: Path) -> list[str]:
     if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
         raise ConfigError(f"{path} 中 routes 必须是字符串列表，实际是 {value!r}")
     return [item.strip() for item in value if item.strip()]
 
 
-def describe(config: Config) -> Dict[str, Any]:
+def describe(config: Config) -> dict[str, Any]:
     """给日志用的配置摘要（不含密钥）。"""
     return {
         "host": f"{config.host}:{config.port}",

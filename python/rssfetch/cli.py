@@ -7,7 +7,6 @@ import asyncio
 import logging
 import sys
 from datetime import timedelta
-from typing import List, Optional
 
 from . import __version__
 from .config import DEFAULT_CONFIG_PATH, ConfigError, describe, load_config
@@ -71,7 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """CLI 主函数。返回进程退出码，0 表示成功。"""
     args = build_parser().parse_args(argv)
 

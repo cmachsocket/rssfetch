@@ -20,7 +20,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install ruff
+      # 固定版本：ruff 各版本默认启用的规则集不同，不锁版本会出现
+      # "本地过了 CI 挂了" 的漂移。升级时手动改这里。
+      - run: pip install ruff==0.16.9
       - run: ruff check python/
       - run: ruff format --check python/
 
