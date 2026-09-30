@@ -3,15 +3,16 @@ name = "rssfetch"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+# 编译为 Python 扩展模块（cdylib），同时保留 rlib 以便未来写 Rust 测试。
+name = "_rssfetch"
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
+pyo3 = "0.29"
 rss = "2"
-reqwest = {version = "0.13"}
-tokio = {version='1',features= ['full']}
+reqwest = "0.13"
+tokio = { version = "1", features = ["rt-multi-thread", "time"] }
 html2text = "0.17"
-serde-saphyr = "1"
-serde = {version="1",features = ["derive"] }
-futures = "0.3"
 chrono = "0.4"
-log = "0.4"
-env_logger = "0.11"
 async-openai = { version = "0.42.1", features = ["chat-completion"] }

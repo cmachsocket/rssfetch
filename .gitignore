@@ -2,3 +2,12 @@
 /output
 config.yml
 .env
+
+# Python / maturin
+__pycache__/
+*.py[cod]
+*.so
+/build
+/dist
+*.egg-info/
+.venv/

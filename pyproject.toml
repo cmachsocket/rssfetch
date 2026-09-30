@@ -1,0 +1,24 @@
+[build-system]
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "rssfetch"
+version = "0.1.0"
+description = "抓取 RSS 订阅源，输出当日 markdown 并生成 LLM 摘要（Rust/PyO3 实现）"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["PyYAML>=6.0"]
+
+[project.scripts]
+rssfetch = "rssfetch.__main__:main"
+
+[tool.maturin]
+# 混合项目：python-source 下的 rssfetch/ 是纯 Python 包，
+# 编译产物 python/rssfetch/_rssfetch.<abi>.so 由 module-name 指定。
+python-source = "python"
+module-name = "rssfetch._rssfetch"
+# pyo3 的 extension-module 特性由 maturin 打开，
+# 这样 `cargo check` / `cargo test` 仍能链接 libpython 正常工作。
+features = ["pyo3/extension-module"]
+strip = true
